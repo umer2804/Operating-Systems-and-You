@@ -1,0 +1,201 @@
+Chapter 11 Regular Expressions
+-------------------------------------------------------------------------------------
+import re
+
+hand = open("regex_sum_448468.txt")
+x=list()
+for line in hand:
+     y = re.findall('[0-9]+',line)
+     x = x+y
+
+sum=0
+for z in x:
+    sum = sum + int(z)
+
+print(sum)
+----------------------------------------------------------------------------------------
+Chapter 12 Exploring the HyperText Transport Protocol
+-------------------------------------------------------------------------------------
+#ou are to retrieve the following document using the HTTP protocol in a way that you can examine the HTTP Response headers.
+#http://data.pr4e.org/intro-short.txt.There are three ways that you might retrieve this 
+#web page and look at the response headers:
+#Preferred: Modify the socket1.py program to retrieve the above URL and print out the headers and data.
+#  Make sure to change the code to retrieve the above URL - the values are different for each URL.
+#Open the URL in a web browser with a developer console or FireBug and manually examine the headers that are returned.
+#Use the telnet program as shown in lecture to retrieve the headers and content.
+
+import socket #socket library
+
+mysock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #works same like a file handle      
+mysock.connect(('data.pr4e.org', 80)) #Establishes Connection using connect method
+cmd = 'GET http://data.pr4e.org/intro-short.txt HTTP/1.0\r\n\r\n'.encode() #sends data request to server
+mysock.send(cmd) #in above line .encode() converts the text from unicode to utf-8
+
+while True:
+    data = mysock.recv(512) #recieves first 512 bytes of data
+    if (len(data) < 1): #if no data is recieve then break
+        break
+    print(data.decode()) 
+mysock.close() #closes connection
+----------------------------------------------------------------------------------------
+Chapter 12 Continued - Using Urllib and beautiful soup
+---------------------------------------------------------------------------------------
+#You are to find all the <span> tags in the file and pull out the numbers from the tag and sum the numbers.
+import urllib.request,urllib.error,urllib.parse
+import ssl
+from bs4 import BeautifulSoup
+
+#ignores the ssl errors , don't worry about these lines just memorize them
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+html =urllib.request.urlopen('http://py4e-data.dr-chuck.net/comments_448470.html').read()
+soup = BeautifulSoup(html,'html.parser')
+
+tags = soup('span')
+sum = 0
+count  = 0 
+for tag in tags:
+    num = int(tag.text)
+    count = count+1
+    sum  = sum + num
+print('count:' ,count  , 'Sum = ' , sum)
+---------------------------------------------------------------------------------------------------------------------------
+#The program will use urllib to read the HTML from the data files below, extract the href= vaues from the anchor tags, 
+# scan for a tag that is in a particular position relative to the first name in the list, follow that link 
+# and repeat the process a number of times and report the last name you find.
+#Actual problem: Start at: http://py4e-data.dr-chuck.net/known_by_Seamus.html
+#Find the link at position 18 (the first name is 1). Follow that link. Repeat this process 7 times. The answer
+#is the last name that you retrieve.Hint: The first character of the name of the last page that you will load is: B
+
+import urllib.request,urllib.error,urllib.parse
+import ssl
+from bs4 import BeautifulSoup
+
+#ignores the ssl errors , don't worry about these lines just memorize them
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+
+position = int(input("Enter position:"))-1
+count = int(input("Enter count:"))
+html = urllib.request.urlopen('http://py4e-data.dr-chuck.net/known_by_Seamus.html', context=ctx).read()
+soup = BeautifulSoup(html, 'html.parser')
+Sequence = [] #list
+tags = soup('a')
+for tag in range(count):
+    link = tags[position].get('href', None)
+    print("Retrieving:",link)
+    Sequence.append(tags[position].contents[0])
+    html = urllib.request.urlopen(link, context=ctx).read()
+    soup = BeautifulSoup(html, 'html.parser')
+    tags = soup('a')
+    link = tags[position].get('href', None)
+print(Sequence[-1])
+---------------------------------------------------------------------------------------------------------------------------
+Chapter 13 Programs Surfing the Internet(XML, JSON and APIs)
+---------------------------------------------------------------------------------------------------------------------------
+#In this assignment you will write a Python program somewhat similar to http://www.py4e.com/code3/geoxml.py. 
+# The program will prompt for a URL, read the XML data from that URL using urllib and then parse and extract the 
+# comment counts from the XML data, compute the sum of the numbers in the file.
+
+import urllib.request, urllib.error,urllib.parse
+import xml.etree.ElementTree as ET
+
+#reading the data online using urllib
+xml = urllib.request.urlopen('http://py4e-data.dr-chuck.net/comments_448472.xml').read()
+# transform the string content into a xml tree
+tree = ET.fromstring(xml)
+#find all comments childs named as comment
+lst = tree.findall('comments/comment')
+
+total  = 0
+#loop through  the comment section
+for counts in lst:
+    #find count child in comment  and fetch it text and converts it to int
+    total  = total + int(counts.find('count').text)
+print(total)
+-----------------------------------------------------------------------------------------------------------------
+JSON
+---------------------------------------------------------------------------------------------------------------
+#Find the sum of counts from the given link to json code and use urllib to read the data directly from url
+import urllib.parse,urllib.error, urllib.request
+import json
+import ssl
+count  = 
+#ignores the ssl errors , don't worry about these lines just memorize them
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+url = 'http://py4e-data.dr-chuck.net/comments_448473.json'
+handle= urllib.request.urlopen(url)
+data  = handle.read()
+
+info = json.loads(data)
+print('User count:', len(info))
+ 
+for item in info["comments"]: # from the comment section it goes to count
+	#print item["count"]
+	number = int(item["count"])
+	count = count + number
+print(count)
+---------------------------------------------------------------------------------------------------------------
+Json APIs
+--------------------------------------------------------------------------------------------------------------
+#In this assignment you will write a Python program somewhat similar to http://www.py4e.com/code3/geojson.py. The program will 
+# prompt for a location, contact a web service and retrieve JSON for the web service and parse that data, and retrieve the first place_id 
+# from the JSON. A place ID is a textual identifier that uniquely identifies a place as within Google Maps.To call the API, you need to include a key= parameter
+#  and provide the address that you are requesting as the address= parameter that is properly URL encoded using the urllib.parse.urlencode()
+#  function as shown in http://www.py4e.com/code3/geojson.py
+import urllib.parse, urllib.error, urllib.request
+import ssl
+import json
+api_key = False
+# If you have a Google Places API key, enter it here
+# api_key = 'AIzaSy___IDByT70'
+# https://developers.google.com/maps/documentation/geocoding/intro
+
+if api_key is False:
+    api_key = 42
+    serviceurl = 'http://py4e-data.dr-chuck.net/json?'
+else :
+    serviceurl = 'https://maps.googleapis.com/maps/api/geocode/json?'
+
+# Ignore SSL certificate errors
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
+
+while True:
+    address = input('Enter Location:')
+    if len(address) < 1: 
+        break
+    parms = dict()
+    parms['address'] = address
+    if api_key is not False: parms['key'] = api_key
+    url = serviceurl + urllib.parse.urlencode(parms)
+
+    print('Retrieving', url)
+    uh = urllib.request.urlopen(url, context=ctx)
+    data = uh.read().decode()
+    print('Retrieved', len(data), 'characters')
+
+    try:
+        js = json.loads(data)
+    except:
+        js = None
+
+    if not js or 'status' not in js or js['status'] != 'OK':
+        print('==== Failure To Retrieve ====')
+        print(data)
+        continue
+    print(json.dumps(js, indent=4))
+    print ('Place id',js['results'][0]['place_id'])
+
+
+
+    
+
