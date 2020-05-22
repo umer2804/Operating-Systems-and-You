@@ -1,7 +1,6 @@
 Chapter 11 Regular Expressions
 -------------------------------------------------------------------------------------
 import re
-
 hand = open("regex_sum_448468.txt")
 x=list()
 for line in hand:
@@ -10,7 +9,6 @@ for line in hand:
 sum=0
 for z in x:
     sum = sum + int(z)
-
 print(sum)
 ----------------------------------------------------------------------------------------
 Chapter 12 Exploring the HyperText Transport Protocol
